@@ -29,7 +29,7 @@ F1TENTH ROS code.
 
 # Create the parser and add arguments with defaults and explicit names
 parser = argparse.ArgumentParser(description='Generate optimal trajectory for F1TENTH racing.')
-parser.add_argument('--map_name', type=str, default='e7_floor5_square', help='Name of the map (default: e7_floor5_square)')
+parser.add_argument('--map_name', type=str, default='', help='Name of the map')
 parser.add_argument('--map_path', type=str, default='', help='Path to the map centerline (should be a .csv), defaults to inputs/tracks/<map_name>.csv')
 parser.add_argument('--export_path', type=str, default='', help='Path to copy from the filepath in the /outputs')
 
@@ -78,7 +78,7 @@ imp_opts = {"flip_imp_track": False,                # flip imported track to rev
 # 'mincurv'             minimum curvature optimization without iterative call
 # 'mincurv_iqp'         minimum curvature optimization with iterative call
 # 'mintime'             time-optimal trajectory optimization
-opt_type = 'mincurv'
+opt_type = 'mincurv_iqp'
 
 # set mintime specific options (mintime only) --------------------------------------------------------------------------
 # tpadata:                      set individual friction map data file if desired (e.g. for varmue maps), else set None,
