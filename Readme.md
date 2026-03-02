@@ -7,11 +7,13 @@ bash Miniforge3-Linux-x86_64.sh
 > Don't choose initialization during setup
 
 In .bashrc, append:
+
 ```bash
-if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
-    . "$HOME/miniconda3/etc/profile.d/conda.sh"
+if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
+    . "$HOME/miniforge3/etc/profile.d/conda.sh"
 fi
 ```
+Source .bashrc and delete install script
 
 # Introduction
 This repository contains algorithms that allow us to determine an optimal racing line on a race track. You can chose
