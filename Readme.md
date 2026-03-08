@@ -52,6 +52,7 @@ Then, set up your virtual environment. Conda is the recommended method.
 ```bash
 conda create --name raceline python=3.8
 conda activate raceline
+conda install -c conda-forge quadprog=0.1.7
 ```
 
 Lots of the required functions for trajectory planning are cumulated in the trajectory planning helpers repository.
