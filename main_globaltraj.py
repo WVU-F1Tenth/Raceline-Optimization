@@ -22,7 +22,7 @@ This script has to be executed to generate an optimal trajectory based on a give
 # ----------------------------------------------------------------------------------------------------------------------
 
 # choose vehicle parameter file ----------------------------------------------------------------------------------------
-file_paths = {"veh_params_file": "racecar.ini"}
+file_paths = {"veh_params_file": "stephen.ini"}
 
 # debug and plot options -----------------------------------------------------------------------------------------------
 debug = True                                    # print console messages
@@ -39,7 +39,7 @@ plot_opts = {"mincurv_curv_lin": False,         # plot curv. linearization (orig
 # select track file (including centerline coordinates + track widths) --------------------------------------------------
 # file_paths["track_name"] = "rounded_rectangle"                              # artificial track
 # file_paths["track_name"] = "handling_track"                                 # artificial track
-file_paths["track_name"] = "berlin"                                    # Berlin Formula E 2018
+file_paths["track_name"] = "berlin_map"                                    # Berlin Formula E 2018
 # file_paths["track_name"] = "modena_2019"                                    # Modena 2019
 
 # set import options ---------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ imp_opts = {"flip_imp_track": False,                # flip imported track to rev
 # 'mincurv'             minimum curvature optimization without iterative call
 # 'mincurv_iqp'         minimum curvature optimization with iterative call
 # 'mintime'             time-optimal trajectory optimization
-opt_type = 'mincurv'
+opt_type = 'mincurv_iqp'
 
 # set mintime specific options (mintime only) --------------------------------------------------------------------------
 # tpadata:                      set individual friction map data file if desired (e.g. for varmue maps), else set None,
@@ -256,17 +256,46 @@ if opt_type == 'mincurv':
                                               plot_debug=plot_opts["mincurv_curv_lin"])[0]
 
 elif opt_type == 'mincurv_iqp':
-    alpha_opt, reftrack_interp, normvec_normalized_interp = tph.iqp_handler.\
-        iqp_handler(reftrack=reftrack_interp,
-                    normvectors=normvec_normalized_interp,
-                    A=a_interp,
-                    kappa_bound=pars["veh_params"]["curvlim"],
-                    w_veh=pars["optim_opts"]["width_opt"],
-                    print_debug=debug,
-                    plot_debug=plot_opts["mincurv_curv_lin"],
-                    stepsize_interp=pars["stepsize_opts"]["stepsize_reg"],
-                    iters_min=pars["optim_opts"]["iqp_iters_min"],
-                    curv_error_allowed=pars["optim_opts"]["iqp_curverror_allowed"])
+    # TPH >= 0.79 needs additional geometric quantities for the current reference track:
+    # spline lengths, heading, curvature, and curvature derivative.
+
+    spline_len_reftrack = tph.calc_spline_lengths.calc_spline_lengths(
+        coeffs_x=coeffs_x_interp,
+        coeffs_y=coeffs_y_interp
+    )
+
+    psi_reftrack, kappa_reftrack, dkappa_reftrack = tph.calc_head_curv_an.calc_head_curv_an(
+        coeffs_x=coeffs_x_interp,
+        coeffs_y=coeffs_y_interp,
+        ind_spls=np.arange(reftrack_interp.shape[0]),
+        t_spls=np.zeros(reftrack_interp.shape[0]),
+        calc_dcurv=True
+    )
+
+    (
+        alpha_opt,
+        reftrack_interp,
+        normvec_normalized_interp,
+        spline_len_reftrack,
+        psi_reftrack,
+        kappa_reftrack,
+        dkappa_reftrack,
+    ) = tph.iqp_handler.iqp_handler(
+        reftrack=reftrack_interp,
+        normvectors=normvec_normalized_interp,
+        A=a_interp,
+        spline_len=spline_len_reftrack,
+        psi=psi_reftrack,
+        kappa=kappa_reftrack,
+        dkappa=dkappa_reftrack,
+        kappa_bound=pars["veh_params"]["curvlim"],
+        w_veh=pars["optim_opts"]["width_opt"],
+        print_debug=debug,
+        plot_debug=plot_opts["mincurv_curv_lin"],
+        stepsize_interp=pars["stepsize_opts"]["stepsize_reg"],
+        iters_min=pars["optim_opts"]["iqp_iters_min"],
+        curv_error_allowed=pars["optim_opts"]["iqp_curverror_allowed"],
+    )
 
 elif opt_type == 'shortest_path':
     alpha_opt = tph.opt_shortest_path.opt_shortest_path(reftrack=reftrack_interp,

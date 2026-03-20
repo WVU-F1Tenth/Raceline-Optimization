@@ -282,17 +282,46 @@ if opt_type == 'mincurv':
                                               plot_debug=plot_opts["mincurv_curv_lin"])[0]
 
 elif opt_type == 'mincurv_iqp':
-    alpha_opt, reftrack_interp, normvec_normalized_interp = tph.iqp_handler.\
-        iqp_handler(reftrack=reftrack_interp,
-                    normvectors=normvec_normalized_interp,
-                    A=a_interp,
-                    kappa_bound=pars["veh_params"]["curvlim"],
-                    w_veh=pars["optim_opts"]["width_opt"],
-                    print_debug=debug,
-                    plot_debug=plot_opts["mincurv_curv_lin"],
-                    stepsize_interp=pars["stepsize_opts"]["stepsize_reg"],
-                    iters_min=pars["optim_opts"]["iqp_iters_min"],
-                    curv_error_allowed=pars["optim_opts"]["iqp_curverror_allowed"])
+    # TPH >= 0.79 needs additional geometric quantities for the current reference track:
+    # spline lengths, heading, curvature, and curvature derivative.
+
+    spline_len_reftrack = tph.calc_spline_lengths.calc_spline_lengths(
+        coeffs_x=coeffs_x_interp,
+        coeffs_y=coeffs_y_interp
+    )
+
+    psi_reftrack, kappa_reftrack, dkappa_reftrack = tph.calc_head_curv_an.calc_head_curv_an(
+        coeffs_x=coeffs_x_interp,
+        coeffs_y=coeffs_y_interp,
+        ind_spls=np.arange(reftrack_interp.shape[0]),
+        t_spls=np.zeros(reftrack_interp.shape[0]),
+        calc_dcurv=True
+    )
+
+    (
+        alpha_opt,
+        reftrack_interp,
+        normvec_normalized_interp,
+        spline_len_reftrack,
+        psi_reftrack,
+        kappa_reftrack,
+        dkappa_reftrack,
+    ) = tph.iqp_handler.iqp_handler(
+        reftrack=reftrack_interp,
+        normvectors=normvec_normalized_interp,
+        A=a_interp,
+        spline_len=spline_len_reftrack,
+        psi=psi_reftrack,
+        kappa=kappa_reftrack,
+        dkappa=dkappa_reftrack,
+        kappa_bound=pars["veh_params"]["curvlim"],
+        w_veh=pars["optim_opts"]["width_opt"],
+        print_debug=debug,
+        plot_debug=plot_opts["mincurv_curv_lin"],
+        stepsize_interp=pars["stepsize_opts"]["stepsize_reg"],
+        iters_min=pars["optim_opts"]["iqp_iters_min"],
+        curv_error_allowed=pars["optim_opts"]["iqp_curverror_allowed"],
+    )
 
 elif opt_type == 'shortest_path':
     alpha_opt = tph.opt_shortest_path.opt_shortest_path(reftrack=reftrack_interp,
@@ -550,7 +579,7 @@ bound1, bound2 = helper_funcs_glob.src.check_traj.\
 
 # export race trajectory  to CSV
 if "traj_race_export" in file_paths.keys():
-    helper_funcs_glob.src.export_traj_race.export_traj_race_f110(file_paths=file_paths,
+    helper_funcs_glob.src.export_traj_race.export_traj_race(file_paths=file_paths,
                                                             traj_race=traj_race_cl)
 
 # if requested, export trajectory including map information (via normal vectors) to CSV
@@ -592,7 +621,6 @@ helper_funcs_glob.src.result_plots.result_plots(plot_opts=plot_opts,
                                                 bound1_interp=bound1,
                                                 bound2_interp=bound2,
                                                 trajectory=trajectory_opt)
-
 
 
 if EXPORT_PATH != '':
