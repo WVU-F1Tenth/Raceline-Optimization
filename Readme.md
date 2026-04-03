@@ -1,21 +1,3 @@
-# To install conda
-MAYBE JUST USE .VENV
-```bash
-wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
-bash Miniforge3-Linux-x86_64.sh
-```
-
-> Don't choose initialization during setup
-
-In .bashrc, append:
-
-```bash
-if [ -f "$HOME/miniforge3/etc/profile.d/conda.sh" ]; then
-    . "$HOME/miniforge3/etc/profile.d/conda.sh"
-fi
-```
-Source .bashrc and delete install script
-
 # Introduction
 This repository contains algorithms that allow us to determine an optimal racing line on a race track. You can chose
 between several objectives:
@@ -48,20 +30,17 @@ git clone https://github.com/CL2-UWaterloo/Raceline-Optimization.git
 cd Raceline-Optimization
 ```
 
-Then, set up your virtual environment. Conda is the recommended method.
+Don't use conda. From Raceline_Optimization run:
 
 ```bash
-conda create --name raceline python=3.8
-conda activate raceline
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
 ```
-
-Lots of the required functions for trajectory planning are cumulated in the trajectory planning helpers repository.
-
-**Note**: A fork of the trajectory planning helper repository is used in the `requirements.txt` file instead of the original repository due to issues with outdated `quadprog` library.
 
 Install the required python packages
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt -c constraints.txt
 ```
 
 # Steps
