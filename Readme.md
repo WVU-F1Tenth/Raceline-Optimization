@@ -23,6 +23,7 @@ calculating the global race trajectory.
 * `params`: This folder contains a parameter file with optimization and vehicle parameters.
 
 # Getting Started
+These instructions assume you are using python 3.8.
 
 First, clone the repository
 ```bash
